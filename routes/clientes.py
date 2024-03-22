@@ -8,7 +8,9 @@ def lista_clientes(): # (GET) Exibe todos os clientes cadastrados
 
 @cliente_route.route('/<int:id_cliente>') # (GET) Exibe o cliente com base no id 
 def ver_cliente(id_cliente):
-    return render_template('cliente.html')
+    usuario_obtido = list(filter(lambda c:c['id'] == id_cliente, CLIENTES))[0]
+    print(usuario_obtido)
+    return render_template('cliente.html', usuario =usuario_obtido)
 
 
 @cliente_route.route('/new') # (GET) Vai exibir o formulario de cadastro de clientes 
@@ -23,13 +25,28 @@ def cadastro_cliente():
     print(request.json)
     return render_template('item_cliente.html', usuario=novo_usuario)
 
-@cliente_route.route('/edit') # (GET) Exibe o formulario para editar o cliente
-def form_update_cliente():
-    return render_template('edit_cliente.html')
+@cliente_route.route('/edit/<int:id_cliente>') # (GET) Exibe o formulario para editar o cliente
+def form_update_cliente(id_cliente):
+    cliente = None
+    for c in CLIENTES:
+        if c['id'] == id_cliente:
+            cliente = c
+            break   
+    return render_template('cadastro_cliente.html', cliente=cliente)
 
 @cliente_route.route('/<int:id_cliente>', methods=['PUT']) # (PUT) Atualiza os dados de um cliente ja existente
 def update_cliente(id_cliente):
-    return 'Atualiza os dados de um cliente ja existente'
+    cliente_editado = None
+    data = request.json
+
+    for c in CLIENTES:
+        if c['id'] == id_cliente:
+            c['nome'] = data['username'] 
+            c['email'] = data['email']
+            cliente_editado = c
+            break
+
+    return render_template('item_cliente.html', usuario=cliente_editado)
 
 @cliente_route.route('/<int:id_cliente>', methods=['DELETE']) # (DELETE) Deleta um cliente
 def deletar_cliente(id_cliente):
