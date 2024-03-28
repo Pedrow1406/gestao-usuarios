@@ -1,16 +1,17 @@
 from flask import Blueprint, render_template, request
-from database.clientes import CLIENTES
+from database.models.cliente import Cliente
+
 cliente_route = Blueprint('cliente', __name__)
 
 @cliente_route.route('/')
 def lista_clientes(): # (GET) Exibe todos os clientes cadastrados
-    return render_template('lista_clientes.html', usuarios=CLIENTES)
+    todos_clientes = Cliente.select()
+    return render_template('lista_clientes.html', usuarios = todos_clientes)
 
 @cliente_route.route('/<int:id_cliente>') # (GET) Exibe o cliente com base no id 
 def ver_cliente(id_cliente):
-    usuario_obtido = list(filter(lambda c:c['id'] == id_cliente, CLIENTES))[0]
-    print(usuario_obtido)
-    return render_template('cliente.html', usuario =usuario_obtido)
+    usuario_obtido = Cliente.get_by_id(id_cliente)
+    return render_template('cliente.html', usuario = usuario_obtido)
 
 
 @cliente_route.route('/new') # (GET) Vai exibir o formulario de cadastro de clientes 
@@ -19,42 +20,32 @@ def form_cadastro_cliente():
 
 @cliente_route.route('/', methods=["POST"]) # (POST) Vai receber os dados do formulario de clientes e vai validar e armazenar no database
 def cadastro_cliente():
-    data = request.json
-    novo_usuario = {"id":CLIENTES[-1]['id'] + 1, "nome":data['username'],"email": data['email']}
-    CLIENTES.append(novo_usuario)
-    print(request.json)
-    return render_template('item_cliente.html', usuario=novo_usuario)
+    try:
+        data = request.json
+        novo_cliente = Cliente.create(name = data['username'], email = data['email'])
+        return render_template('item_cliente.html', usuario=novo_cliente)
+    except:
+        return render_template('item_cliente.html', email_existente = True)
 
 @cliente_route.route('/edit/<int:id_cliente>') # (GET) Exibe o formulario para editar o cliente
 def form_update_cliente(id_cliente):
-    cliente = None
-    for c in CLIENTES:
-        if c['id'] == id_cliente:
-            cliente = c
-            break   
+    cliente = Cliente.get_by_id(id_cliente)
     return render_template('cadastro_cliente.html', cliente=cliente)
 
 @cliente_route.route('/<int:id_cliente>', methods=['PUT']) # (PUT) Atualiza os dados de um cliente ja existente
 def update_cliente(id_cliente):
-    cliente_editado = None
     data = request.json
-
-    for c in CLIENTES:
-        if c['id'] == id_cliente:
-            c['nome'] = data['username'] 
-            c['email'] = data['email']
-            cliente_editado = c
-            break
+    cliente_editado = Cliente.get_by_id(id_cliente)
+    cliente_editado.name = data['username']
+    cliente_editado.email = data['email']
+    cliente_editado.save()
 
     return render_template('item_cliente.html', usuario=cliente_editado)
 
 @cliente_route.route('/<int:id_cliente>', methods=['DELETE']) # (DELETE) Deleta um cliente
 def deletar_cliente(id_cliente):
-    global CLIENTES
-    CLIENTES = [cliente for cliente in CLIENTES if cliente['id'] != id_cliente]
+    Cliente.delete_by_id(id_cliente)
     return 'Usuário Deletado'
-
-
 
  
 

@@ -1,8 +1,9 @@
-<tr id="cliente-{{usuario.id}}">
-    <th scope="row">{{usuario.id}}</th>
-    <td>{{usuario.nome}}</td>
-    <td>{{usuario.email}}</td>
-    <td>
+{% if not email_existente %}
+    <tr id="cliente-{{usuario.id}}">
+        <th scope="row">{{usuario.id}}</th>
+        <td>{{usuario.name}}</td>
+        <td>{{usuario.email}}</td>
+        <td>
         <button 
             class="ver btn btn-success" 
             c-get="{{url_for('cliente.ver_cliente', id_cliente=usuario.id)}}" 
@@ -11,18 +12,19 @@
             Ver
         </button>
 
-
         <button
             class="editar btn btn-primary" 
             c-get="{{url_for('cliente.form_update_cliente', id_cliente=usuario.id)}}"
             c-target="#form-cliente">
             Editar
         </button>
-    <button 
-        c-delete="{{url_for('cliente.deletar_cliente', id_cliente=usuario.id)}}" 
-        class="deletar btn btn-danger"
-        c-remove-closest="tr">
-        Deletar
-    </button>
-    </td>
-</tr>  
+
+        <button 
+            c-delete="{{url_for('cliente.deletar_cliente', id_cliente=usuario.id)}}" 
+            class="deletar btn btn-danger"
+            c-remove-closest="tr">
+            Deletar
+        </button>
+        </td>
+    </tr>  
+{% endif %}
